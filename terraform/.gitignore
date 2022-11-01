@@ -1,0 +1,11 @@
+# A lock file you can check into git to
+# help with collaboration
+.terraform.lock.hcl
+# A directory with terraform resources
+# such as the aws provider
+# e.g. ".terraform/providers/registry.terraform.io/hashicorp/aws/3.20.0/darwin_amd64", a golang binary
+.terraform
+# Super-important state files, and a backup
+# which is made before any apply/destroy
+terraform.tfstate
+terraform.tfstate.backup
