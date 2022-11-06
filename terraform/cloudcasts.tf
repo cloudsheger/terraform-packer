@@ -32,49 +32,39 @@ data "aws_ami" "app" {
   owners = ["self"]
 }
 
-# File cloudcasts.tf
-
-resource "aws_instance" "cloudcasts_web" {
-  ami           = data.aws_ami.app.id
-  instance_type = var.instance_size
-
-  root_block_device {
-    volume_size = 8 # GB
-    volume_type = "gp2"
-  }
-
-  lifecycle { 
-    create_before_destroy = true
-  }
-
-  tags = {
-    Name        = "cloudcasts-${var.infra_env}-web"
-    Project     = "cloudcasts.io"
-    Environment = var.infra_env
-    ManagedBy   = "terraform"
-  }
+module "ec2_app" {
+   source = "./modules/ec2"
+ 
+   infra_env = var.infra_env
+   infra_role = "app"
+   instance_size = "t2.micro"
+   instance_ami = data.aws_ami.app.id
+   subnets = keys(module.vpc.vpc_public_subnets) # Note: Public subnets 
+  # security_groups = [] # TODO: Create security groups
+  security_groups = [module.vpc.security_group_public] 
+  # instance_root_device_size = 12 
 }
-# Create an eip resouce 
-resource "aws_eip" "app_eip" {
-  vpc = true
-
-  lifecycle {
-
-    prevent_destroy = false
-
-  }
-
-  tags = {
-    Name        = "cloudcasts-${var.infra_env}-web"
-    Project     = "cloudcasts.io"
-    Environment = var.infra_env
-    ManagedBy   = "terraform"
-  }
+ 
+module "ec2_worker" {
+   source = "./modules/ec2"
+ 
+   infra_env = var.infra_env
+   infra_role = "worker"
+   instance_size = "t2.micro"
+   instance_ami = data.aws_ami.app.id
+   subnets = keys(module.vpc.vpc_private_subnets) # Note: Private subnets  
+  # security_groups = [] # TODO: Create security groups
+  security_groups = [module.vpc.security_group_private] 
+  # instance_root_device_size = 20 //
+   instance_root_device_size = 20
 }
 
-# associate eip to the instance
-
-resource "aws_eip_association" "app_eip_assoc" {
-  instance_id   = aws_instance.cloudcasts_web.id
-  allocation_id = aws_eip.app_eip.id
+module "vpc" {
+  source = "./modules/vpc"
+ 
+  infra_env = var.infra_env
+ 
+  # Note we are /17, not /16
+  # So we're only using half of the available
+  vpc_cidr  = "10.0.0.0/17"
 }

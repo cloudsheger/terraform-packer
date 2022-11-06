@@ -1,3 +1,8 @@
+resource "random_shuffle" "subnets" { 
+  input = var.subnets
+  result_count = 1
+} 
+
 resource "aws_instance" "cloudcasts_web" {
   ami           = var.instance_ami
   instance_type = var.instance_size
@@ -6,6 +11,9 @@ resource "aws_instance" "cloudcasts_web" {
     volume_size = var.instance_root_device_size
     volume_type = "gp2"
   }
+
+  subnet_id = random_shuffle.subnets.result[0] 
+  vpc_security_group_ids = var.security_groups 
  
   tags = {
     Name        = "cloudcasts-${var.infra_env}-web"
@@ -22,7 +30,7 @@ resource "aws_eip" "cloudcasts_addr" {
   vpc      = true
  
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
   }
  
   tags = {
