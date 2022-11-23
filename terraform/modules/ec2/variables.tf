@@ -35,3 +35,8 @@ variable security_groups {
   description = "security groups to assign to server"
   default = []
 }
+
+variable "key_name" {
+   description = "new key keypair for ec2 instance"
+   default = "cloudsheger"
+}

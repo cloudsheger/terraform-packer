@@ -1,10 +1,10 @@
 {
   "min_packer_version":"1.0.0",
   "variables":{ 
-    "infra_name": "cloudcasts",
-    "infra_env": "",
+    "infra_name": "cloudsheger-ami-docker",
+    "infra_env": "staging",
     "aws_region": "us-east-1",
-    "aws_instance": "t2.micro",
+    "aws_instance": "t2.medium",
     "vault_pass": "" 
   }, 
   "builders":[
@@ -52,21 +52,8 @@
   ],
   "provisioners":[
     {
-      "script": "{{template_dir}}/scripts/base.sh",
+      "script": "{{template_dir}}/scripts/init.sh",
       "type": "shell"
-  }, 
-  {
-    "type": "ansible-local",
-    "playbook_file": "ansible/app.yml",
-    "command": "echo '{{user `vault_pass`}}' | ansible-playbook",
-    "role_paths": [
-      "ansible/roles/base",
-      "ansible/roles/php",
-      "ansible/roles/nginx",
-      "ansible/roles/app"
-    ],
-    "extra_arguments": ["--vault-password-file=/bin/cat", "--extra-vars \"infra_env={{user `infra_env`}}\""],
-    "group_vars": "ansible/group_vars"
-  } 
-]
+  }
+  ]
 }

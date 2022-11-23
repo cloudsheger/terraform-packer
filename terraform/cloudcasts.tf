@@ -16,7 +16,7 @@ data "aws_ami" "app" {
 
   filter {
     name   = "tag:Project"
-    values = ["cloudcasts"]
+    values = ["cloudsheger-ami-docker"]
   }
 
   filter {
@@ -37,26 +37,38 @@ module "ec2_app" {
  
    infra_env = var.infra_env
    infra_role = "app"
-   instance_size = "t2.micro"
+   instance_size = "t2.medium"
    instance_ami = data.aws_ami.app.id
    subnets = keys(module.vpc.vpc_public_subnets) # Note: Public subnets 
   # security_groups = [] # TODO: Create security groups
-  security_groups = [module.vpc.security_group_public] 
-  # instance_root_device_size = 12 
+  security_groups = [module.vpc.security_group_public]
+  instance_root_device_size = 50
 }
  
 module "ec2_worker" {
-   source = "./modules/ec2"
+  source = "./modules/ec2"
  
-   infra_env = var.infra_env
-   infra_role = "worker"
-   instance_size = "t2.micro"
-   instance_ami = data.aws_ami.app.id
-   subnets = keys(module.vpc.vpc_private_subnets) # Note: Private subnets  
-  # security_groups = [] # TODO: Create security groups
-  security_groups = [module.vpc.security_group_private] 
-  # instance_root_device_size = 20 //
-   instance_root_device_size = 20
+  infra_env = "Ubuntu-Remote"
+  infra_role = "worker"
+  instance_size = "t2.micro"
+  instance_ami = data.aws_ami.app.id
+  subnets = keys(module.vpc.vpc_public_subnets) # Note: Private subnets  
+  security_groups = [module.vpc.security_group_public]
+  instance_root_device_size = 20
+ #  instance_root_device_size = 20
+}
+
+module "ec2_guacamole" {
+  source = "./modules/ec2"
+ 
+  infra_env = "guacamole"
+  infra_role = "worker"
+  instance_size = "t2.micro"
+  instance_ami = data.aws_ami.app.id
+  subnets = keys(module.vpc.vpc_public_subnets) # Note: Private subnets  
+  security_groups = [module.vpc.security_group_public]
+  instance_root_device_size = 40 //
+ #  instance_root_device_size = 20
 }
 
 module "vpc" {
